@@ -17,6 +17,12 @@ curl 'http://rest.ensembl.org/vep/Homo_sapiens/hgvs/9%3Ag.22125504G%3EC' \
 -H 'Connection: keep-alive'
 '''
 
+'''
+TODO:
+* Randomize headers 
+    Similar to this: https://github.com/galkan/tools/blob/master/others/programming/python/random-http-headers-urllib.py 
+'''
+
 def VEP(variant):
 	
 	url_pattern = 'http://rest.ensembl.org/vep/Homo_sapiens/hgvs/{variant}'
