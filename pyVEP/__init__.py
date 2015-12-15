@@ -157,9 +157,19 @@ def get_variant_type(variant):
 
 	return 'id', new_variant # Hoping for the best
 
-def VEP(variant, variant_type=None):
+def VEP(variant, variant_type=None, assembly='grch38'):
 	
-	url_pattern = 'http://rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
+	url_pattern_grch38 = 'http://rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
+	url_pattern_grch37 = 'http://grch37.rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
+
+	if assembly.lower() in ['grch38', 'hg38']:
+		url_pattern = url_pattern_grch38
+	elif assembly.lower() in ['grch37', 'hg19']:
+		url_pattern = url_pattern_grch37
+	else:
+		message = 'Unknown assembly: %s Accepted values: grch38, hg38, grch37, hg19' % (str(assembly))
+		logging.error(message)
+		raise ValueError(message)
 
 	headers = {
 		'Host': 'rest.ensembl.org',
@@ -178,6 +188,9 @@ def VEP(variant, variant_type=None):
 		raise PyVEPException('variant_type should be str')
 	if not type(variant).__name__ in ['str', 'unicode']:
 		raise PyVEPException('variant should be str or unicode')
+
+	if str(variant_type) not in ['region', 'id', 'hgvs']:
+		raise ValueError('Unknown variant_type value: %s . Accepted values: region, id, hgvs' % (str(variant_type)))
 
 	logging.debug('VAP Variant: %s' % (variant))
 	variant_quoted = urllib.quote(variant)
