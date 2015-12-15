@@ -24,9 +24,142 @@ TODO:
     Similar to this: https://github.com/galkan/tools/blob/master/others/programming/python/random-http-headers-urllib.py 
 '''
 
-def VEP(variant):
+class PyVEPException(Exception):
+	pass
+
+
+def get_variant_type(variant):
+	'''
+	Simple heuristics to get the variant type
+
+	1 182712 182712 A/C 1  --> 1:182712-182712:1/C
+	3 319781 319781 A/- 1  --> 3:319781-319781:1/-
+	19 110748 110747 -/T 1 --> 19:110748-110747:1/T
+	1 160283 471362 DUP 1 --> 1:160283-471362:1/DUP
+	1 1385015 1387562 DEL 1 --> 1:1385015-1387562:1/DEL  
+
+	1 182712 . A C . . . --> 1:182712-182712:1/C
+	3 319780 . GA G . . . --> 3:319781-319781:1/- 
+	3 319780 . GAA G . . . --> 3:319781-319782:1/- 
+	19 110747 . G GT . . . --> 9:110748-110747:1/T 
+	19 110747 . G GTT . . . --> 19:110748-110747:1/TT 
+	1 160283 sv1 . <DUP> . . SVTYPE=DUP;END=471362 . --> UNABLE TO GENERATE PREVIEW!
+	1 1385015 sv2 . <DEL> . . SVTYPE=DEL;END=1387562 . --> UNABLE TO GENERATE PREVIEW!
+	'''
+
+	new_variant = variant
+	variant_splitted = variant.split()
+	if len(variant_splitted) == 5:
+		# Ensembl default
+
+		ref_alt = variant_splitted[3].split('/')
+		if len(ref_alt) == 2:
+			if ref_alt[1] == '-':
+				new_variant = ''.join([
+					variant_splitted[0], 
+					':', 
+					variant_splitted[1], 
+					'-', 
+					variant_splitted[2],
+					':',
+					variant_splitted[4],
+					'/',
+					'-',
+					])
+			else:
+				new_variant = ''.join([
+					variant_splitted[0], 
+					':', 
+					variant_splitted[1], 
+					'-', 
+					variant_splitted[2],
+					':',
+					variant_splitted[4],
+					'/',
+					ref_alt[1],
+					])
+		elif variant_splitted[3] in ['DUP', 'DEL']:
+			new_variant = ''.join([
+				variant_splitted[0], 
+				':', 
+				variant_splitted[1], 
+				'-', 
+				variant_splitted[2],
+				':',
+				variant_splitted[4],
+				'/',
+				variant_splitted[3],
+				])
+		else:
+			message = '%s notation is not supported..' % (variant_splitted[3])
+			logging.error(message)
+			raise PyVEPException(message)
+
+		return 'region', new_variant
+
+	if len(variant_splitted) == 8:
+		if len(variant_splitted[3]) == 1 and len(variant_splitted[4]) == 1:
+			#Simple SNP
+			new_variant = ''.join([
+				variant_splitted[0],
+				':',
+				variant_splitted[1],
+				'-',
+				variant_splitted[1],
+				':',
+				'1', # Not sure what this is..
+				'/',
+				variant_splitted[4],
+				])
+		elif len(variant_splitted[3]) > len(variant_splitted[4]):
+			# Deletion
+			new_variant = ''.join([
+				variant_splitted[0],
+				':',
+				str(int(variant_splitted[1]) + len(variant_splitted[4])),
+				'-',
+				str(int(variant_splitted[1]) + len(variant_splitted[3]) - len(variant_splitted[4])),
+				':',
+				'1', # Not sure what this is..
+				'/',
+				'-',
+				])
+		elif len(variant_splitted[3]) < len(variant_splitted[4]):
+			# Insertion
+			# 19 110747 . G GT . . . --> 9:110748-110747:1/T 
+			# 19 110747 . G GTT . . . --> 19:110748-110747:1/TT 
+			new_variant = ''.join([
+				variant_splitted[0],
+				':',
+				str(int(variant_splitted[1]) + len(variant_splitted[3])),
+				'-',
+				variant_splitted[1],
+				':',
+				'1', # Not sure what this is..
+				'/',
+				variant_splitted[4][len(variant_splitted[3]):],
+				])
+		else:
+			raise PyVEPException('Could not parse VCF variant: %s' % (variant))
+
+		return 'region', new_variant
+
+	if variant[0:2] == 'rs':
+		# Variant identifier
+		return 'id', new_variant
+
+	if ':' in variant:
+		# HGVS notation 
+		return 'hgvs', new_variant
+
+	if len(variant_splitted) > 1:
+		logging.error('Could not recognize variant: %s' % (variant))
+
+	return 'id', new_variant # Hoping for the best
+
+def VEP(variant, variant_type=None):
 	
-	url_pattern = 'http://rest.ensembl.org/vep/Homo_sapiens/hgvs/{variant}'
+	url_pattern = 'http://rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
 
 	headers = {
 		'Host': 'rest.ensembl.org',
@@ -38,8 +171,18 @@ def VEP(variant):
 		'Connection': 'keep-alive',
 	}
 
+
+	if variant_type is None:
+		variant_type, variant = get_variant_type(variant)
+	if not type(variant_type) is str:
+		raise PyVEPException('variant_type should be str')
+	if not type(variant).__name__ in ['str', 'unicode']:
+		raise PyVEPException('variant should be str or unicode')
+
+	logging.debug('VAP Variant: %s' % (variant))
 	variant_quoted = urllib.quote(variant)
-	url = url_pattern.format(variant=variant_quoted)
+	url = url_pattern.format(
+		variant=variant_quoted, variant_type=variant_type)
 
 	logging.debug('URL: %s' % (url))
 	r = requests.get(url, headers=headers)
@@ -57,5 +200,39 @@ def test():
 		r = VEP(variant)
 		logging.info('Result: %s' % json.dumps(r, indent=4))
 
-	try_variant('9:g.22125504G>C')
+	testing_variants = {
+		'ENSEMBL default variant': [
+			'1 182712 182712 A/C 1',
+			'2 265023 265023 C/T 1',
+			'3 319781 319781 A/- 1',
+			'19 110748 110747 -/T 1',
+			'1 160283 471362 DUP 1',
+			'1 1385015 1387562 DEL 1',
+		],
+		'VCF': [
+			'1 182712 . A C . . .',
+			'3 319780 . GA G . . .',
+			'3 319780 . GAA G . . .',
+			'19 110747 . G GT . . .',
+			'19 110747 . G GTT . . .',
+#			'1 160283 sv1 . <DUP> . . SVTYPE=DUP;END=471362 .',
+#			'1 1385015 sv2 . <DEL> . . SVTYPE=DEL;END=1387562 .',
+		],
+		'Variant identifiers': [
+			'rs699',
+			'rs144678492',
+			'COSM354157',
+		],
+		'HGVS notations': [
+			'AGT:c.803T>C',
+			'9:g.22125504G>C',
+			'ENST00000003084:c.1431_1433delTTC',
+			'19:g.110747_110748insT',
+			'LRG_101t1:c.1019T>C',
+		],
+	}
 
+	for variant_type in testing_variants:
+		logging.info('TESTING TYPE: %s' % (variant_type))
+		for variant in testing_variants[variant_type]:
+			try_variant(variant)
