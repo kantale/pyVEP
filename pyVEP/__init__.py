@@ -3,6 +3,7 @@ import urllib
 import logging
 import requests
 
+__version__ == '0.0.1'
 
 '''
 Example curl command:
