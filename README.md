@@ -12,6 +12,11 @@ print r[0]['most_severe_consequence']
 "downstream_gene_variant"
 ```
 
+VEP also accepts the following parameters:
+* ```assembly```. Sets the version of he human reference assemby. Acceptable values are: ```grch37```, ```grch38```, ```hg19``` and ```hg18```. Default value is ```grch38```.
+* ```variant_type``` . In general, pyVEP applies some heuristics in order to guess the variant type (if it is ensembl, vcf, hgvs, or variant identifier). Set the ```variant_type``` parameter to skip this step. Available values are: ```region``` for VCF and Ensembl default, ```hgvs``` for HGVS nomenclature and ```id``` for variant identifier (ex. rs variant).
+
+
 According to VEP (http://asia.ensembl.org/Tools/VEP) it accepts variants in any of the following forms:
 * Ensembl default:
 ```
