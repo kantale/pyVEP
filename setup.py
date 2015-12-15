@@ -1,4 +1,15 @@
 
+import sys
+
+try:
+	from setuptools import setup
+except ImportError as e:
+	print 'setuptools package is not installed'
+	print 'On linux install with the following command:'
+	print 'wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python '
+	print 'For more info please visit: https://pypi.python.org/pypi/setuptools'
+	sys.exit(1)
+
 
 setup(name='pyVEP',
       version='0.0.1',
