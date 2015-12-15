@@ -1,7 +1,7 @@
 # pyVEP
 Python interface to Variant Effect Predictor
 
-pyVEP is a python tool to access [Variant Effect Predictor](http://www.ensembl.org/info/docs/tools/vep/index.html). It does not rely on a specific API and it just emulates a GET request to ensembl.org site. 
+pyVEP is a python tool to access [Variant Effect Predictor](http://www.ensembl.org/info/docs/tools/vep/index.html). It does not rely on a specific API and it just emulates a GET request to the "Instant result for first variant" feature of VEP. 
 
 Example:
 ```python
@@ -44,14 +44,8 @@ ENST00000003084:c.1431_1433delTTC
 19:g.110747_110748insT
 LRG_101t1:c.1019T>C
 ```
-* Pileup:
-```
-AGT:c.803T>C
-9:g.22125504G>C
-ENST00000003084:c.1431_1433delTTC
-19:g.110747_110748insT
-LRG_101t1:c.1019T>C
-```
+* ~Pileup~ 
+    * Pileup is not supported on the "Instant result for first variant" functionality.
 
 ### Install 
 ```bash
