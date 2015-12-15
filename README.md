@@ -44,7 +44,7 @@ ENST00000003084:c.1431_1433delTTC
 19:g.110747_110748insT
 LRG_101t1:c.1019T>C
 ```
-* ~Pileup~ 
+* ~~Pileup~~ 
     * Pileup is not supported on the "Instant result for first variant" functionality.
 
 ### Install 
