@@ -162,10 +162,12 @@ def VEP(variant, assembly, variant_type=None):
 	url_pattern_grch38 = 'http://rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
 	url_pattern_grch37 = 'http://grch37.rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
 
-	if assembly.lower() in ['grch38', 'hg38']:
+	preprocess_assembly = lambda x : x.split('.')[0].lower()
+
+	if preprocess_assembly(assembly) in ['grch38', 'hg38']:
 		url_pattern = url_pattern_grch38
 		header_version = 'rest'
-	elif assembly.lower() in ['grch37', 'hg19']:
+	elif preprocess_assembly(assembly) in ['grch37', 'hg19']:
 		url_pattern = url_pattern_grch37
 		header_version = 'grch37.rest'
 	else:
