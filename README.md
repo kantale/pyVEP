@@ -7,13 +7,13 @@ Example:
 ```python
 from pyVEP import VEP
 
-r = VEP('9:g.22125504G>C')
+r = VEP('9:g.22125504G>C', 'grch38')
 print r[0]['most_severe_consequence']
 "downstream_gene_variant"
 ```
 
 VEP also accepts the following parameters:
-* ```assembly```. Sets the version of he human reference assemby. Acceptable values are: ```grch37```, ```grch38```, ```hg19``` and ```hg18```. Default value is ```grch38```.
+* ```assembly```. REQUIRED. Sets the version of he human reference assemby. Acceptable values are: ```grch37```, ```grch38```, ```hg19``` and ```hg18```. Default value is ```grch38```.
 * ```variant_type``` . In general, pyVEP applies some heuristics in order to guess the variant type (if it is ensembl, vcf, hgvs, or variant identifier). Set the ```variant_type``` parameter to skip this step. Available values are: ```region``` for VCF and Ensembl default, ```hgvs``` for HGVS nomenclature and ```id``` for variant identifier (ex. rs variant).
 
 

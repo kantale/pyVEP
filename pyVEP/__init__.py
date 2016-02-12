@@ -157,7 +157,7 @@ def get_variant_type(variant):
 
 	return 'id', new_variant # Hoping for the best
 
-def VEP(variant, variant_type=None, assembly='grch38'):
+def VEP(variant, assembly, variant_type=None):
 	
 	url_pattern_grch38 = 'http://rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
 	url_pattern_grch37 = 'http://grch37.rest.ensembl.org/vep/Homo_sapiens/{variant_type}/{variant}'
@@ -210,7 +210,7 @@ def test():
 
 	def try_variant(variant):
 		logging.info('Trying variant: %s' % (variant))
-		r = VEP(variant)
+		r = VEP(variant, 'grch38')
 		logging.info('Result: %s' % json.dumps(r, indent=4))
 
 	testing_variants = {
