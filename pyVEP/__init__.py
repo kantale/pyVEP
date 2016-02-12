@@ -164,15 +164,17 @@ def VEP(variant, assembly, variant_type=None):
 
 	if assembly.lower() in ['grch38', 'hg38']:
 		url_pattern = url_pattern_grch38
+		header_version = 'rest'
 	elif assembly.lower() in ['grch37', 'hg19']:
 		url_pattern = url_pattern_grch37
+		header_version = 'grch37.rest'
 	else:
 		message = 'Unknown assembly: %s Accepted values: grch38, hg38, grch37, hg19' % (str(assembly))
 		logging.error(message)
 		raise ValueError(message)
 
 	headers = {
-		'Host': 'rest.ensembl.org',
+		'Host': '%s.ensembl.org' % (header_version),
 		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:42.0) Gecko/20100101 Firefox/42.0',
 		'Accept': 'application/json, text/javascript, */*; q=0.01',
 		'Accept-Language': 'en-US,en;q=0.5',
